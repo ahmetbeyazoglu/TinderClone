@@ -16,6 +16,7 @@ import com.herpestes.tinderclone.DestinationScreen
 import com.herpestes.tinderclone.navigateTo
 
 enum class BottomNavigationItem(val icon: Int, val navDestination: DestinationScreen) {
+    //getting Icon
     SWIPE(R.drawable.baseline_swipe, DestinationScreen.Swipe),
     CHATLIST(R.drawable.baseline_chat, DestinationScreen.ChatList),
     PROFILE(R.drawable.baseline_profile, DestinationScreen.Profile)
@@ -24,6 +25,7 @@ enum class BottomNavigationItem(val icon: Int, val navDestination: DestinationSc
 @Composable
 fun BottomNavigationMenu(selectedItem: BottomNavigationItem, navController: NavController) {
     Row(
+        //Bottom nagivation bar species
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
@@ -32,6 +34,7 @@ fun BottomNavigationMenu(selectedItem: BottomNavigationItem, navController: NavC
 
     ) {
         for (item in BottomNavigationItem.values()) {
+            //Bottom navigation icon species
             Image(
                 painter = painterResource(id = item.icon),
                 contentDescription = null,
@@ -42,6 +45,7 @@ fun BottomNavigationMenu(selectedItem: BottomNavigationItem, navController: NavC
                     .clickable {
                                navigateTo(navController, item.navDestination.route)
                     },
+                //selected item changing the color
                 colorFilter = if (item == selectedItem) ColorFilter.tint(Color.Black)
                 else ColorFilter.tint(Color.Gray)
             )

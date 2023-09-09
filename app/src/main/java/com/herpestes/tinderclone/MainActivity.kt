@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.herpestes.tinderclone.ui.*
 import com.herpestes.tinderclone.ui.theme.TinderCloneTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 
 sealed class DestinationScreen(val route: String){
@@ -29,6 +30,8 @@ sealed class DestinationScreen(val route: String){
 
 
 }
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

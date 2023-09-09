@@ -146,6 +146,7 @@ fun SwipeCards(navController:NavController) {
                 )
             }
         }
+        //getting the bottom menu every screen
         BottomNavigationMenu(
             selectedItem = BottomNavigationItem.PROFILE,
             navController = navController

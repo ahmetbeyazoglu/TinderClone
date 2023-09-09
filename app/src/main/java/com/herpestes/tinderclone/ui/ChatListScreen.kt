@@ -18,6 +18,7 @@ fun ChatListScreen(navController: NavController){
         modifier = Modifier.fillMaxSize()
     ) {
         Text(text = "Chat List Screen")
+        //getting the bottom menu every screen
         BottomNavigationMenu(
             selectedItem = BottomNavigationItem.CHATLIST,
             navController = navController

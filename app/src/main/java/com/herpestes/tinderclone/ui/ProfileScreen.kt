@@ -17,6 +17,7 @@ fun ProfileScreen(navController: NavController) {
         modifier = Modifier.fillMaxSize()
     ) {
         Text(text = "Profile Screen")
+        //getting the bottom menu every screen
         BottomNavigationMenu(
             selectedItem = BottomNavigationItem.PROFILE,
             navController = navController
