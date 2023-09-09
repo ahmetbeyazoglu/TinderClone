@@ -57,13 +57,13 @@ fun SwipeAppNavigation(){
             LoginScreen()
         }
         composable(DestinationScreen.Profile.route){
-            ProfileScreen()
+            ProfileScreen(navController)
         }
         composable(DestinationScreen.Swipe.route){
-            SwipeCards()
+            SwipeCards(navController)
         }
         composable(DestinationScreen.ChatList.route){
-            ChatListScreen()
+            ChatListScreen(navController)
         }
         composable(DestinationScreen.SingleChat.route){
             SingleChatScreen(chatId = "123")
