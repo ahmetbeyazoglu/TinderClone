@@ -1,5 +1,6 @@
 package com.herpestes.tinderclone
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -13,4 +14,7 @@ class TCViewModel @Inject constructor(
     val db: FirebaseFirestore,
     val storage: FirebaseStorage
 ) :ViewModel() {
+    //progress bar state
+    val inProgress = mutableStateOf(false)
+
 }
