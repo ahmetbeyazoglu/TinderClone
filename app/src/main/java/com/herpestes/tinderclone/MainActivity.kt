@@ -55,6 +55,8 @@ fun SwipeAppNavigation(){
 
     val vm = hiltViewModel<TCViewModel>()
     val navController = rememberNavController()
+    
+    NotificationMessage(vm = vm)
 
     NavHost(navController = navController, startDestination = DestinationScreen.Signup.route){
         composable(DestinationScreen.Signup.route){
