@@ -3,17 +3,17 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id "kotlin-kapt"
     id "dagger.hilt.android.plugin"
-    id 'com.google.gms.google-services'
+    //id 'com.google.gms.google-services'
 }
 
 android {
     namespace 'com.example.tinderclone'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.tinderclone"
         minSdk 24
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
