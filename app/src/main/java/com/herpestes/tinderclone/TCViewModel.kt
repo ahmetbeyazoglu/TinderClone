@@ -8,6 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.herpestes.tinderclone.data.COLLECTIN_USER
 import com.herpestes.tinderclone.data.Event
+import com.herpestes.tinderclone.data.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -35,13 +36,12 @@ class TCViewModel @Inject constructor(
                     auth.createUserWithEmailAndPassword(email, pass)
                         .addOnCompleteListener {  task ->
                             if(task.isSuccessful)
-                                // Create user profile in db
+                                createOrUpdateProfile(username = username)
                             else
                                 handleException(task.exception, "Signup failed")
                         }
 
-                }
-                else
+                } else
                     handleException(customMessage = "username already exists")
                 inProgress.value = false
             }
@@ -50,12 +50,53 @@ class TCViewModel @Inject constructor(
             }
     }
 
+    private fun createOrUpdateProfile(
+        name: String? = null,
+        username: String? = null,
+        bio: String? = null,
+        imageUrl: String? = null,
+    ) {
+        val uid = auth.currentUser?.uid
+        val userData = UserData(
+            userId = uid,
+            name = name,
+            username = username,
+            imageUrl = imageUrl,
+            bio = bio
+        )
 
-    private fun handleException(exception: Exception? = null, customMessage: String = ""){
+        uid?.let {  uid ->
+            inProgress.value = true
+            db.collection(COLLECTIN_USER).document(uid)
+                .get()
+                .addOnSuccessListener {
+                    if (it.exists())
+                        it.reference.update(userData.toMap())
+                            .addOnSuccessListener {
+                                inProgress.value = false
+                            }
+                            .addOnFailureListener {
+                                handleException(it, "Cannot update user")
+                            }
+                    else{
+                        db.collection(COLLECTIN_USER).document(uid).set(userData)
+                        inProgress.value = false
+                    }
+                }
+                .addOnFailureListener {
+                    handleException(it, "Cannot create user")
+                }
+        }
+
+
+    }
+
+
+    private fun handleException(exception: Exception? = null, customMessage: String = "") {
         Log.e("TinderClone", "Tinder Exception", exception)
         exception?.printStackTrace()
         val errorMsg = exception?.localizedMessage ?: ""
-        val message = if(customMessage.isNotEmpty()) errorMsg else "$customMessage: $errorMsg"
+        val message = if (customMessage.isNotEmpty()) errorMsg else "$customMessage: $errorMsg"
         popupNotification.value = Event(message)
         inProgress.value = false
     }
