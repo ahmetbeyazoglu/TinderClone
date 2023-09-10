@@ -81,6 +81,11 @@ fun SignupScreen(navController:NavController, vm: TCViewModel) {
 
                     focus.clearFocus(force = true)
                     //call vm on Signup
+                    vm.onSignup(
+                        usernameState.value.text,
+                        emailState.value.text,
+                        passwordState.value.text
+                    )
                 },
                 modifier = Modifier.padding(8.dp)
             ) {
