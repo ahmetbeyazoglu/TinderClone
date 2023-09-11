@@ -12,6 +12,7 @@ import com.herpestes.tinderclone.data.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.google.firebase.firestore.ktx.toObject
+import com.herpestes.tinderclone.ui.Gender
 
 @HiltViewModel
 class TCViewModel @Inject constructor(
@@ -91,6 +92,8 @@ class TCViewModel @Inject constructor(
         username: String? = null,
         bio: String? = null,
         imageUrl: String? = null,
+        gender: Gender? = null,
+        genderPrefence: Gender? = null,
     ) {
         val uid = auth.currentUser?.uid
         val userData = UserData(
@@ -98,7 +101,10 @@ class TCViewModel @Inject constructor(
             name = name ?:userData.value?.name,
             username = username?:userData.value?.username,
             imageUrl = imageUrl ?:userData.value?.imageUrl,
-            bio = bio ?:userData.value?.bio
+            bio = bio ?:userData.value?.bio,
+            gender = gender ?.toString() ?: userData.value?.gender,
+            genderPrefence = genderPrefence ?.toString() ?: userData.value?.genderPrefence,
+
         )
 
         uid?.let {  uid ->

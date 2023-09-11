@@ -9,6 +9,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
+
+enum class Gender{
+    MALE, FEMALE, ANY
+}
+
 @Composable
 fun ProfileScreen(navController: NavController) {
     Column(
