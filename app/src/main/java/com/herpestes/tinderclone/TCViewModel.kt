@@ -65,6 +65,27 @@ class TCViewModel @Inject constructor(
             }
     }
 
+    fun onLogin(email: String, pass: String){
+        if(email.isEmpty() or pass.isEmpty()){
+            handleException(customMessage = "Please fill in all fields")
+            return
+        }
+        inProgress.value = true
+        auth.signInWithEmailAndPassword(email,pass)
+            .addOnCompleteListener { task ->
+            if(task.isSuccessful){
+                signedIn.value = true
+                inProgress.value = false
+                auth.currentUser?.uid?.let {
+                    getUserData(it)
+                }
+            }else
+                handleException(task.exception, "Login failed")
+            }
+            .addOnFailureListener {
+                handleException(it, "Login failed")
+            }
+    }
     private fun createOrUpdateProfile(
         name: String? = null,
         username: String? = null,
