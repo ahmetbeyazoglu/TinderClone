@@ -28,7 +28,7 @@ class TCViewModel @Inject constructor(
     val userData = mutableStateOf<UserData?>(null)
 
     init {
-        auth.signOut()
+       // auth.signOut()
         val currentUser = auth.currentUser
         signedIn.value = currentUser != null
         currentUser?.uid?.let { uid ->
@@ -95,10 +95,10 @@ class TCViewModel @Inject constructor(
         val uid = auth.currentUser?.uid
         val userData = UserData(
             userId = uid,
-            name = name,
-            username = username,
-            imageUrl = imageUrl,
-            bio = bio
+            name = name ?:userData.value?.name,
+            username = username?:userData.value?.username,
+            imageUrl = imageUrl ?:userData.value?.imageUrl,
+            bio = bio ?:userData.value?.bio
         )
 
         uid?.let {  uid ->
@@ -140,6 +140,13 @@ class TCViewModel @Inject constructor(
                     inProgress.value = false
                 }
             }
+    }
+
+    fun onLogout(){
+        auth.signOut()
+        signedIn.value = false
+        userData.value = null
+        popupNotification.value = Event("Logged out")
     }
     private fun handleException(exception: Exception? = null, customMessage: String = "") {
         Log.e("TinderClone", "Tinder Exception", exception)
