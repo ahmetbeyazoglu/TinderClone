@@ -11,6 +11,7 @@ import com.herpestes.tinderclone.data.Event
 import com.herpestes.tinderclone.data.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import com.google.firebase.firestore.ktx.toObject
 
 @HiltViewModel
 class TCViewModel @Inject constructor(
@@ -22,7 +23,21 @@ class TCViewModel @Inject constructor(
     //progress bar state
     val inProgress = mutableStateOf(false)
 
-    val popupNotification = mutableStateOf<Event<String>?>(Event("Test"))
+    val popupNotification = mutableStateOf<Event<String>?>(null)
+    val signedIn = mutableStateOf(false)
+    val userData = mutableStateOf<UserData?>(null)
+
+    init {
+        auth.signOut()
+        val currentUser = auth.currentUser
+        signedIn.value = currentUser != null
+        currentUser?.uid?.let { uid ->
+            getUserData(uid)
+        }
+
+    }
+
+
 
     fun onSignup(username: String, email: String, pass:String){
         if(username.isEmpty() or email.isEmpty() or pass.isEmpty()){
@@ -81,6 +96,7 @@ class TCViewModel @Inject constructor(
                     else{
                         db.collection(COLLECTIN_USER).document(uid).set(userData)
                         inProgress.value = false
+                        getUserData(uid)
                     }
                 }
                 .addOnFailureListener {
@@ -91,7 +107,19 @@ class TCViewModel @Inject constructor(
 
     }
 
-
+    private fun getUserData(uid: String) {
+        inProgress.value = true
+        db.collection(COLLECTIN_USER).document(uid)
+            .addSnapshotListener { value, error ->
+                if (error != null)
+                    handleException(error, "Cannot retrieve user data")
+                if (value != null) {
+                    val user = value.toObject<UserData>()
+                    userData.value = user
+                    inProgress.value = false
+                }
+            }
+    }
     private fun handleException(exception: Exception? = null, customMessage: String = "") {
         Log.e("TinderClone", "Tinder Exception", exception)
         exception?.printStackTrace()

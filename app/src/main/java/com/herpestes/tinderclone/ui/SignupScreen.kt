@@ -22,14 +22,15 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.herpestes.tinderclone.CommonProgressSpinner
-import com.herpestes.tinderclone.DestinationScreen
-import com.herpestes.tinderclone.TCViewModel
-import com.herpestes.tinderclone.navigateTo
+import com.herpestes.tinderclone.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignupScreen(navController:NavController, vm: TCViewModel) {
+
+    CheckSignedIn(vm = vm, navController = navController) //if we signed in redirect to homepage
+
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
