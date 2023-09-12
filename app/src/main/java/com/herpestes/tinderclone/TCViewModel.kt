@@ -29,7 +29,7 @@ class TCViewModel @Inject constructor(
     val userData = mutableStateOf<UserData?>(null)
 
     init {
-       // auth.signOut()
+        auth.signOut()
         val currentUser = auth.currentUser
         signedIn.value = currentUser != null
         currentUser?.uid?.let { uid ->
