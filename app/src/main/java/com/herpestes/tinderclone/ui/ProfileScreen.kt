@@ -4,27 +4,12 @@ package com.herpestes.tinderclone.ui
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,7 +63,7 @@ fun ProfileScreen(navController: NavController, vm: TCViewModel) {
                 onGenderChange = { gender = it },
                 onGenderPreferenceChange = { genderPreference = it },
                 onSave = {
-                    //vm.updateProfileData(name, username, bio, gender, genderPreference)
+                    vm.updateProfileData(name, username, bio, gender, genderPreference)
                 },
                 onBack = { navigateTo(navController, DestinationScreen.Swipe.route) },
                 onLogout = {
@@ -286,4 +271,35 @@ fun ProfileContent(
 @Composable
 fun ProfileImage(imageUrl: String?, vm: TCViewModel) {
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ){
+        uri: Uri? ->
+        uri?.let {vm.uploadProfileImage(uri)}
+    }
+
+    Box(modifier = Modifier.height(IntrinsicSize.Min)) {
+        Column(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
+                .clickable {
+                    launcher.launch("image/*")
+                },
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Card(
+                shape = CircleShape, modifier = Modifier
+                    .padding(8.dp)
+                    .size(100.dp)
+            ) {
+                CommonImage(data = imageUrl)
+
+            }
+            Text(text = "Change profile picture")
+        }
+        val isLoading = vm.inProgress.value
+        if (isLoading)
+            CommonProgressSpinner()
+    }
 }

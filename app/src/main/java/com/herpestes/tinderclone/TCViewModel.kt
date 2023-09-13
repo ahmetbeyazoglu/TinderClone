@@ -1,5 +1,6 @@
 package com.herpestes.tinderclone
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -13,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.google.firebase.firestore.ktx.toObject
 import com.herpestes.tinderclone.ui.Gender
+import java.util.UUID
 
 @HiltViewModel
 class TCViewModel @Inject constructor(
@@ -158,6 +160,49 @@ class TCViewModel @Inject constructor(
         userData.value = null
         popupNotification.value = Event("Logged out")
     }
+
+    fun updateProfileData(
+        name:String,
+        username:String,
+        bio:String,
+        gender: Gender,
+        genderPrefence: Gender
+    ){
+        createOrUpdateProfile(
+            name = name,
+            username = username,
+            bio = bio,
+            gender = gender,
+            genderPrefence = genderPrefence
+        )
+    }
+
+    private fun uploadImage(uri: Uri, onSucces: (Uri) -> Unit){
+        inProgress.value = true
+
+        val storageRef = storage.reference
+        val uuid =UUID.randomUUID()
+        val imageRef = storageRef.child("images/$uuid")
+        val uploadTask = imageRef.putFile(uri)
+
+        uploadTask
+            .addOnSuccessListener {
+            val result = it.metadata?.reference?.downloadUrl
+            result?.addOnSuccessListener(onSucces)
+        }
+            .addOnFailureListener {
+                handleException(it)
+                inProgress.value = false
+            }
+    }
+
+    fun uploadProfileImage(uri: Uri){
+        uploadImage(uri){
+            createOrUpdateProfile(imageUrl = it.toString())
+        }
+    }
+
+
     private fun handleException(exception: Exception? = null, customMessage: String = "") {
         Log.e("TinderClone", "Tinder Exception", exception)
         exception?.printStackTrace()
