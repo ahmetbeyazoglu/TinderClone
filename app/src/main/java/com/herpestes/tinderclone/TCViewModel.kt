@@ -51,8 +51,11 @@ class TCViewModel @Inject constructor(
                 if(it.isEmpty){
                     auth.createUserWithEmailAndPassword(email, pass)
                         .addOnCompleteListener {  task ->
-                            if(task.isSuccessful)
+                            if(task.isSuccessful) {
+                                signedIn.value = true
                                 createOrUpdateProfile(username = username)
+                            }
+
                             else
                                 handleException(task.exception, "Signup failed")
                         }
@@ -115,6 +118,7 @@ class TCViewModel @Inject constructor(
                     if (it.exists())
                         it.reference.update(userData.toMap())
                             .addOnSuccessListener {
+                                this.userData.value = userData
                                 inProgress.value = false
                             }
                             .addOnFailureListener {

@@ -1,12 +1,30 @@
 package com.herpestes.tinderclone.ui
 
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,8 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.herpestes.tinderclone.*
 
-
-enum class Gender{
+enum class Gender {
     MALE, FEMALE, ANY
 }
 
@@ -31,15 +48,15 @@ fun ProfileScreen(navController: NavController, vm: TCViewModel) {
         CommonProgressSpinner()
     else {
         val userData = vm.userData.value
+        val g = if (userData?.gender.isNullOrEmpty()) "MALE"
+        else userData!!.gender!!.uppercase()
+        val gPref = if (userData?.genderPrefence.isNullOrEmpty()) "FEMALE"
+        else userData!!.genderPrefence!!.uppercase()
         var name by rememberSaveable { mutableStateOf(userData?.name ?: "") }
         var username by rememberSaveable { mutableStateOf(userData?.username ?: "") }
         var bio by rememberSaveable { mutableStateOf(userData?.bio ?: "") }
-        var gender by rememberSaveable {
-            mutableStateOf(Gender.valueOf(userData?.gender?.uppercase() ?: "MALE"))
-        }
-        var genderPreference by rememberSaveable {
-            mutableStateOf(Gender.valueOf(userData?.genderPrefence?.uppercase() ?: "FEMALE"))
-        }
+        var gender by rememberSaveable { mutableStateOf(Gender.valueOf(g)) }
+        var genderPreference by rememberSaveable { mutableStateOf(Gender.valueOf(gPref)) }
 
         val scrollState = rememberScrollState()
 
@@ -61,12 +78,12 @@ fun ProfileScreen(navController: NavController, vm: TCViewModel) {
                 onGenderChange = { gender = it },
                 onGenderPreferenceChange = { genderPreference = it },
                 onSave = {
-                    // Call the vm
+                    //vm.updateProfileData(name, username, bio, gender, genderPreference)
                 },
                 onBack = { navigateTo(navController, DestinationScreen.Swipe.route) },
                 onLogout = {
                     vm.onLogout()
-                    navigateTo(navController,DestinationScreen.Login.route)
+                    navigateTo(navController, DestinationScreen.Login.route)
                 }
             )
 
@@ -74,9 +91,7 @@ fun ProfileScreen(navController: NavController, vm: TCViewModel) {
                 selectedItem = BottomNavigationItem.PROFILE,
                 navController = navController
             )
-
         }
-
     }
 }
 
@@ -97,10 +112,8 @@ fun ProfileContent(
     onGenderPreferenceChange: (Gender) -> Unit,
     onSave: () -> Unit,
     onBack: () -> Unit,
-    onLogout: () -> Unit,
-
-    ) {
-
+    onLogout: () -> Unit
+) {
     val imageUrl = vm.userData.value?.imageUrl
 
     Column(modifier = modifier) {
@@ -111,11 +124,13 @@ fun ProfileContent(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(text = "Back", modifier = Modifier.clickable { onBack.invoke() })
-            Text(text = "Save", modifier = modifier.clickable { onSave.invoke() })
-
+            Text(text = "Save", modifier = Modifier.clickable { onSave.invoke() })
         }
+
         CommonDivider()
-        ProfileImage()
+
+        ProfileImage(imageUrl = imageUrl, vm = vm)
+
         CommonDivider()
 
         Row(
@@ -128,8 +143,10 @@ fun ProfileContent(
             TextField(
                 value = name,
                 onValueChange = onNameChange,
-                modifier = Modifier.background(Color.Transparent),
-                colors = TextFieldDefaults.textFieldColors(textColor = Color.Black)
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black,
+                    containerColor = Color.Transparent
+                )
             )
         }
 
@@ -143,10 +160,13 @@ fun ProfileContent(
             TextField(
                 value = username,
                 onValueChange = onUsernameChange,
-                modifier = Modifier.background(Color.Transparent),
-                colors = TextFieldDefaults.textFieldColors(textColor = Color.Black)
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black,
+                    containerColor = Color.Transparent
+                )
             )
         }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -158,61 +178,14 @@ fun ProfileContent(
                 value = bio,
                 onValueChange = onBioChange,
                 modifier = Modifier
-                    .background(Color.Transparent)
                     .height(150.dp),
-                colors = TextFieldDefaults.textFieldColors(textColor = Color.Black),
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black,
+                    containerColor = Color.Transparent
+                ),
                 singleLine = false
             )
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Text(
-                text = "Looking for:", modifier = Modifier
-                    .width(100.dp)
-                    .padding(100.dp)
-            )
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = genderPreference == Gender.MALE,
-                        onClick = { onGenderPreferenceChange(Gender.MALE) })
-                    Text(
-                        text = "Men",
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .clickable { onGenderPreferenceChange(Gender.MALE) })
-
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = genderPreference == Gender.FEMALE,
-                        onClick = { onGenderPreferenceChange(Gender.FEMALE) })
-                    Text(
-                        text = "Women",
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .clickable { onGenderPreferenceChange(Gender.FEMALE) })
-
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = genderPreference == Gender.ANY,
-                        onClick = { onGenderPreferenceChange(Gender.ANY) })
-                    Text(
-                        text = "Women",
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .clickable { onGenderPreferenceChange(Gender.ANY) })
-
-                }
-
-            }
-        }
-        CommonDivider()
 
         Row(
             modifier = Modifier
@@ -223,7 +196,7 @@ fun ProfileContent(
             Text(
                 text = "I am a:", modifier = Modifier
                     .width(100.dp)
-                    .padding(100.dp)
+                    .padding(8.dp)
             )
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -235,7 +208,6 @@ fun ProfileContent(
                         modifier = Modifier
                             .padding(4.dp)
                             .clickable { onGenderChange(Gender.MALE) })
-
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
@@ -246,12 +218,59 @@ fun ProfileContent(
                         modifier = Modifier
                             .padding(4.dp)
                             .clickable { onGenderChange(Gender.FEMALE) })
-
                 }
-
             }
         }
+
         CommonDivider()
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(
+                text = "Looking for:", modifier = Modifier
+                    .width(100.dp)
+                    .padding(8.dp)
+            )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = genderPreference == Gender.MALE,
+                        onClick = { onGenderPreferenceChange(Gender.MALE) })
+                    Text(
+                        text = "Men",
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clickable { onGenderPreferenceChange(Gender.MALE) })
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = genderPreference == Gender.FEMALE,
+                        onClick = { onGenderPreferenceChange(Gender.FEMALE) })
+                    Text(
+                        text = "Women",
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clickable { onGenderPreferenceChange(Gender.FEMALE) })
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = genderPreference == Gender.ANY,
+                        onClick = { onGenderPreferenceChange(Gender.ANY) })
+                    Text(
+                        text = "Any",
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clickable { onGenderPreferenceChange(Gender.ANY) })
+                }
+            }
+        }
+
+        CommonDivider()
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -261,13 +280,10 @@ fun ProfileContent(
             Text(text = "Logout", modifier = Modifier.clickable { onLogout.invoke() })
         }
 
-
     }
 }
 
 @Composable
-fun ProfileImage() {
+fun ProfileImage(imageUrl: String?, vm: TCViewModel) {
 
 }
-
-
