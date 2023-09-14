@@ -5,16 +5,17 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.storage.FirebaseStorage
 import com.herpestes.tinderclone.data.COLLECTIN_USER
 import com.herpestes.tinderclone.data.Event
 import com.herpestes.tinderclone.data.UserData
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import com.google.firebase.firestore.ktx.toObject
 import com.herpestes.tinderclone.ui.Gender
-import java.util.UUID
+import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.*
+import javax.inject.Inject
 
 @HiltViewModel
 class TCViewModel @Inject constructor(
@@ -29,6 +30,10 @@ class TCViewModel @Inject constructor(
     val popupNotification = mutableStateOf<Event<String>?>(null)
     val signedIn = mutableStateOf(false)
     val userData = mutableStateOf<UserData?>(null)
+
+    val matchProfiles = mutableStateOf<List<UserData>>(listOf())
+    val inProgressProfile = mutableStateOf(false)
+
 
     init {
         auth.signOut()
@@ -122,6 +127,7 @@ class TCViewModel @Inject constructor(
                             .addOnSuccessListener {
                                 this.userData.value = userData
                                 inProgress.value = false
+                                populateCards()
                             }
                             .addOnFailureListener {
                                 handleException(it, "Cannot update user")
@@ -150,6 +156,7 @@ class TCViewModel @Inject constructor(
                     val user = value.toObject<UserData>()
                     userData.value = user
                     inProgress.value = false
+                    populateCards()
                 }
             }
     }
@@ -210,6 +217,63 @@ class TCViewModel @Inject constructor(
         val message = if (customMessage.isNotEmpty()) errorMsg else "$customMessage: $errorMsg"
         popupNotification.value = Event(message)
         inProgress.value = false
+    }
+
+    private fun populateCards() {
+        inProgressProfile.value = true
+
+        val g = if (userData.value?.gender.isNullOrEmpty()) "ANY"
+        else userData.value!!.gender!!.uppercase()
+        val gPref = if (userData.value?.genderPrefence.isNullOrEmpty()) "ANY"
+        else userData.value!!.genderPrefence!!.uppercase()
+
+        val cardsQuery =
+            when (Gender.valueOf(gPref)) {
+                Gender.MALE -> db.collection(COLLECTIN_USER)
+                    .whereEqualTo("gender", Gender.MALE)
+                Gender.FEMALE -> db.collection(COLLECTIN_USER)
+                    .whereEqualTo("gender", Gender.FEMALE)
+                Gender.ANY -> db.collection(COLLECTIN_USER)
+            }
+        val userGender = Gender.valueOf(g)
+
+        cardsQuery.where(
+            Filter.and(
+                Filter.notEqualTo("userId", userData.value?.userId),
+                Filter.or(
+                    Filter.equalTo("genderPrefence", userGender),
+                    Filter.equalTo("genderPrefence", Gender.ANY)
+                )
+            )
+        )
+            .addSnapshotListener { value, error ->
+                if (error != null) {
+                    inProgressProfile.value = false
+                    handleException(error)
+                }
+                if (value != null) {
+                    val potentials = mutableListOf<UserData>()
+                    value.documents.forEach {
+                        it.toObject<UserData>()?.let { potential ->
+                            var showUser = true
+                            if (userData.value?.swipesLeft?.contains(potential.userId) == true ||
+                                userData.value?.swipesRight?.contains(potential.userId) == true ||
+                                userData.value?.matches?.contains(potential.userId) == true
+                            )
+                                showUser = false
+                            if (showUser)
+                                potentials.add(potential)
+                        }
+                    }
+
+                    matchProfiles.value = potentials
+                    inProgressProfile.value = false
+
+
+
+                }
+
+            }
     }
 
 }

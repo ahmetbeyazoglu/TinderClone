@@ -7,7 +7,11 @@ data class UserData(
     var imageUrl: String? = "",
     var bio: String? = "",
     var gender: String? = "",
-    var genderPrefence: String? = ""
+    var genderPrefence: String? = "",
+    var swipesLeft: List<String> = listOf(),
+    var swipesRight: List<String> = listOf(),
+    var matches: List<String> = listOf(),
+
 ){
     fun toMap() = mapOf(
         "userId" to userId,
@@ -17,6 +21,9 @@ data class UserData(
         "bio" to bio,
         "gender" to gender,
         "genderPrefence" to genderPrefence,
+        "swipesLeft" to swipesLeft,
+        "swipesRight" to swipesRight,
+        "matches" to matches
 
 
     )
