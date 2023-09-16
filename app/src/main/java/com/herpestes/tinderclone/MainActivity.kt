@@ -69,7 +69,7 @@ fun SwipeAppNavigation(){
             ProfileScreen(navController, vm)
         }
         composable(DestinationScreen.Swipe.route){
-            SwipeCards(navController)
+            SwipeScreen(navController,vm)
         }
         composable(DestinationScreen.ChatList.route){
             ChatListScreen(navController)
