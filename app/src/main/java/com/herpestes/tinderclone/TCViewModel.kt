@@ -5,13 +5,12 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.storage.FirebaseStorage
-import com.herpestes.tinderclone.data.COLLECTIN_USER
-import com.herpestes.tinderclone.data.Event
-import com.herpestes.tinderclone.data.UserData
+import com.herpestes.tinderclone.data.*
 import com.herpestes.tinderclone.ui.Gender
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.*
@@ -270,10 +269,53 @@ class TCViewModel @Inject constructor(
                     inProgressProfile.value = false
 
 
-
                 }
 
             }
     }
+
+    fun onDislike(selectedUser: UserData) {
+        db.collection(COLLECTIN_USER).document(userData.value?.userId ?: "")
+            .update("swipesLeft", FieldValue.arrayUnion(selectedUser.userId))
+    }
+
+    fun onLike(selectedUser: UserData) {
+        val reciprocalMatch = selectedUser.swipesRight.contains(userData.value?.userId)
+        if (!reciprocalMatch) {
+            db.collection(COLLECTIN_USER).document(userData.value?.userId ?: "")
+                .update("swipesRight", FieldValue.arrayUnion(selectedUser.userId))
+        } else {
+            popupNotification.value = Event("Match!")
+            db.collection(COLLECTIN_USER).document(selectedUser.userId ?: "")
+                .update("swipesRight", FieldValue.arrayRemove(userData.value?.userId))
+            db.collection(COLLECTIN_USER).document(selectedUser.userId ?: "")
+                .update("matches", FieldValue.arrayUnion(userData.value?.userId))
+            db.collection(COLLECTIN_USER).document(userData.value?.userId ?: "")
+                .update("matches", FieldValue.arrayUnion(selectedUser.userId))
+
+            val chatKey = db.collection(COLLECTION_CHAT).document().id
+            val chatData = ChatData(
+                chatKey,
+                ChatUser(
+                    userData.value?.userId,
+                    if(userData.value?.name.isNullOrEmpty()) userData.value?.username
+                    else userData.value?.name,
+
+                    userData.value?.imageUrl
+                ),
+                ChatUser(
+                    selectedUser.userId,
+                    if(selectedUser.name.isNullOrEmpty()) selectedUser.username
+                        else selectedUser.name,
+
+                    selectedUser.imageUrl
+                ),
+
+                )
+            db.collection(COLLECTION_CHAT).document(chatKey).set(chatData)
+
+        }
+    }
+
 
 }
