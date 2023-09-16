@@ -34,6 +34,9 @@ class TCViewModel @Inject constructor(
     val inProgressProfile = mutableStateOf(false)
 
 
+    val chats = mutableStateOf<List<ChatData>>(listOf())
+    val inProgressChats = mutableStateOf(false)
+
     init {
         auth.signOut()
         val currentUser = auth.currentUser
@@ -156,6 +159,7 @@ class TCViewModel @Inject constructor(
                     userData.value = user
                     inProgress.value = false
                     populateCards()
+                    populateChats()
                 }
             }
     }
@@ -317,5 +321,24 @@ class TCViewModel @Inject constructor(
         }
     }
 
+    private fun populateChats(){
+        inProgress.value = true
+        db.collection(COLLECTION_CHAT).where(
+            Filter.or(
+                Filter.equalTo("user1.userId", userData.value?.userId),
+                Filter.equalTo("user2.userId", userData.value?.userId),
+            )
+        )
+            .addSnapshotListener{ value, error ->
+                inProgressChats.value = false
+                if(error != null)
+                    handleException(error)
+                if(value != null)
+                    chats.value = value.documents.mapNotNull { it.toObject<ChatData>() }
+                inProgressChats.value = false
+
+
+            }
+    }
 
 }
