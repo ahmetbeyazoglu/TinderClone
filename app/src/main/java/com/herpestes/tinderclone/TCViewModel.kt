@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.storage.FirebaseStorage
 import com.herpestes.tinderclone.data.*
@@ -36,6 +37,11 @@ class TCViewModel @Inject constructor(
 
     val chats = mutableStateOf<List<ChatData>>(listOf())
     val inProgressChats = mutableStateOf(false)
+
+    val inProgressChatMessages = mutableStateOf(false)
+    val chatMessages = mutableStateOf<List<Messages>>(listOf())
+    var currentChatMessagesListener: ListenerRegistration? = null
+
 
     init {
         auth.signOut()
@@ -331,14 +337,44 @@ class TCViewModel @Inject constructor(
         )
             .addSnapshotListener{ value, error ->
                 inProgressChats.value = false
-                if(error != null)
+                if (error != null)
                     handleException(error)
-                if(value != null)
+                if (value != null)
                     chats.value = value.documents.mapNotNull { it.toObject<ChatData>() }
                 inProgressChats.value = false
 
 
             }
     }
+
+    fun onSendReply(chatId: String, message: String) {
+        val time = Calendar.getInstance().time.toString()
+        val message = Messages(userData.value?.userId, message, time)
+        db.collection(COLLECTION_CHAT).document(chatId).collection(COLLECTION_MESSAGES).document()
+            .set(message)
+    }
+
+    fun populateChat(chatId: String){
+        inProgressChatMessages.value = true
+        currentChatMessagesListener = db.collection(COLLECTION_CHAT)
+            .document(chatId)
+            .collection(COLLECTION_MESSAGES)
+            .addSnapshotListener{ value, error ->
+                if (error != null)
+                    handleException(error)
+                if(value != null)
+                    chatMessages.value = value.documents
+                        .mapNotNull { it.toObject<Messages>() }
+                        .sortedBy { it.timestamp }
+                inProgressChatMessages.value = false
+
+            }
+    }
+
+    fun depopulateChat(){
+        currentChatMessagesListener = null
+        chatMessages.value = listOf()
+    }
+
 
 }

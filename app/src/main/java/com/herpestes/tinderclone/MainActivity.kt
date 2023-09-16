@@ -75,7 +75,10 @@ fun SwipeAppNavigation(){
             ChatListScreen(navController,vm)
         }
         composable(DestinationScreen.SingleChat.route){
-            SingleChatScreen(chatId = "123")
+            val chatId = it.arguments?.getString("chatId")
+            chatId?.let {
+                SingleChatScreen(navController = navController, vm = vm, chatId = it)
+            }
         }
     }
 }
